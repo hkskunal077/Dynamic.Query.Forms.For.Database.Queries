@@ -11,6 +11,7 @@ DBMS PROJECT WORK
 9.Ranking of selected componenets using F-score
 10.Implementation- 
    1.front - HTML/CSS (Completed) (http://localhost/3000)
-   2.backend-python/node
+   2.backend-python/node (Node Connected)
+   3.Required - phpMyAdmin connection for database request.
 11.Possibly using node.js- mysql(maybe instead of python) 
 12.Would be using tenserflow.js
