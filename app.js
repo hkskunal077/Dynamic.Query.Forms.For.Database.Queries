@@ -1,3 +1,6 @@
+var eloRatings = [1200, 1000, 1000, 1400, 800,
+  800, 1200, 800, 800, 1000
+];
 //jshint esversion:6
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -73,9 +76,10 @@ app.post("/", function(req, res) {
     return encodedPhrase
   }
 
-  const dictionary = ['customers', 'employees', 'offices', 'orderdetails', 'price',
+  const dictionary = ['customers', 'employees', 'offices', 'order details', 'price',
     'payments', 'products', 'productlines', 'productnames', 'buyPrice'
   ];
+
 
   //console.log(encode('Information about customers'));
   let queryNumberGenerated = encode(req.body.query);
@@ -214,7 +218,7 @@ app.post("/", function(req, res) {
       outputEncode = 9;
     } else if (compareListedVals(inputEncode, [0, 0, 0, 0, 0, 0, 0, 0, 0, 1])) {
       outputEncode = 10;
-    }
+    } //else if (compareListedVals(inputEncode, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
 
 
     return outputEncode;
@@ -226,6 +230,147 @@ app.post("/", function(req, res) {
   console.log("\nquerybuilderNumberVal", querybuilderNumberVal);
   //////////////////////////////////////////////////////////////////////////////////////////////////
 
+  //funcion for updating Elo Ratings of Keywords
+  function updateEloRatings(query) {
+    updateQuery = req.body.query;
+    var EloRating = require('elo-rating');
+    EloRating.NextRatingFn(dictionary[queryNumberGenerated]);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //In case of conflict arising we decide what are the cases which are conflicting
+  function decode(encodedPhrase) {
+    const decodedPhrase = dictionary.map(num => num.value.includes(num) ? encodedPhrase : decode);
+    const phraseWord = decodedPhrase.join();
+
+    return phraseWord;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //finding out what all queries are intersected, what tables are performing the unexpected results
+  function conflictQuery(queryNumberGeneratedArray) {
+
+    var dictionaryConflicting;
+    var zero = newFilledArray(maxLength, 0);
+    dictionaryConflicting = zero.slice(0, requiredLength);
+
+    let presenceDetected = 0;
+
+    for (i = 0; i < queryNumberGeneratedArray.length(); i++) {
+      if (queryNumberGeneratedArray[i] === 1) {
+        presenceDetected = presenceDetected + 1;
+      }
+    }
+
+    if (presenceDetected > 1) {
+      intersectingQueryKeywords = decode(queryNumberGeneratedArray[presenceDetected]);
+    }
+    return intersectingQueryKeywords;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function compareEloRating(listQueryIntersecion) {
+    var EloRating = require('elo-rating');
+
+    var playerWin = false;
+    var result = EloRating.calculate(listQueryIntersecion[decode()], listQueryIntersecion[decode()], queryWin);
+
+    console.log(result.queryRating)
+    console.log(result.intersectingQueryRating)
+
+    result = EloRating.calculate(queryRating, intersectingQueryRating);
+
+    console.log(result.queryRating)
+    console.log(result.intersectingQueryRating)
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //for multiple query conflict we will do resolution by having them compared their Elo Ratings
+  function conflictResolution(intersectingQueryKeywords) {
+    if (EloRating.NextRatingFn(intersectingQueryKeywords[0]) >= EloRating.NextRatingFn(intersectingQueryKeywords[1])) {
+      preferedQuery = intersectingQueryKeywords[0];
+    } else {
+      preferedQuery = intersectingQueryKeywords[1];
+    }
+
+    if (querybuilder(querybuilderNumberVal.toString() != preferedQuery)) {
+      querybuilderNumberVal.toString() = preferedQuery;
+    } else {
+      querybuilderNumberVal.toString() = dictionary[querybuilderNumber];
+    }
+    return preferedQuery
+  }
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function precisionRecallCalculation(relevantStrings, retrievedStrings) {
+    const defaultValues = {
+      precision: 0,
+      recall: 0,
+      f: 0,
+    };
+
+    const calculator = (relevantStrings, retrievedStrings) => {
+      if (!relevantStrings || relevantStrings.length === 0) {
+        return defaultValues;
+      }
+
+      if (!retrievedStrings || retrievedStrings.length === 0) {
+        return defaultValues;
+      }
+
+      const relevantSet = new Set(relevantStrings);
+      const uniqueRelevant = Array.from(relevantSet);
+
+      const retrievedSet = new Set(retrievedStrings);
+      const uniqueRetrieved = Array.from(retrievedSet);
+
+      const intersection = uniqueRelevant.filter(x => retrievedSet.has(x));
+
+      if (!intersection || intersection.length === 0) {
+        return defaultValues;
+      }
+
+      const precision = intersection.length / uniqueRetrieved.length;
+      const recall = intersection.length / uniqueRelevant.length;
+      const f = 2 * (precision * recall) / (precision + recall);
+      return {
+        precision,
+        recall,
+        f,
+      };
+    };
+  } //function precisionRecallCalculation
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  function prf() {
+
+    var retrievedStrings = ['yes', 'yes', 'yes'];
+    var relevantStrings = ['yes', 'no', 'no'];
+
+    intersection = ['yes', 'yes']
+
+    const precision = intersection.length / retrievedStrings.length;
+    const recall = intersection.length / retrievedStrings.length;
+    const f = 2 * (precision * recall) / (precision + recall);
+
+    console.log(precision, "\n", recall, "\n", f, "\n");
+    //console.log(precisionRecallCalculation(relevantStrings, retrievedStrings), "\n")
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  function calculateAll() {
+    eloRatings[querybuilderNumberVal] += (Math.max(...eloRatings) - Math.min(...eloRatings)) / eloRatings[querybuilderNumberVal];
+    console.log(eloRatings)
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  calculateAll()
+
+  prf()
+
+  //console.log(precisionRecallCalculation(relevantStrings, retrievedStrings))
 
   connection.query(querybuilder(querybuilderNumberVal.toString()), function(error, results, fields) {
     if (error) console.log(error);
