@@ -1,5 +1,3 @@
-# DBMS-Project
-DBMS-Project.
 Modern scientific databases and web databases maintain large and heterogeneous data.
 Traditional predefined query forms are not able to satisfy various ad-hoc queries from
 users on those databases.
